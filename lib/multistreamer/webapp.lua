@@ -813,22 +813,18 @@ app:post('publish-stop',config.http_prefix .. '/on-done',function(self)
     id = stream.id,
   })
 
-  if stream_status.data_pushing == true then
-    for _,v in pairs(stream:get_webhooks()) do
-      v:fire_event('stream:end')
-    end
+  for _,v in pairs(stream:get_webhooks()) do
+    v:fire_event('stream:end')
   end
 
   streams_dict:set(stream.id,nil)
 
-  if stream_status.data_pushing == true then
-    for _,v in pairs(sas) do
-      local account = v[1]
-      local sa = v[2]
+  for _,v in pairs(sas) do
+    local account = v[1]
+    local sa = v[2]
 
-      sa:update({rtmp_url = db.NULL})
-      networks[account.network].publish_stop(account:get_keystore(),sa:get_keystore())
-    end
+    sa:update({rtmp_url = db.NULL})
+    networks[account.network].publish_stop(account:get_keystore(),sa:get_keystore())
   end
 
   return plain_err_out(self,'OK',200)
@@ -1007,6 +1003,7 @@ app:match('stream-stats', config.http_prefix .. '/stats', respond_to({
   GET = function(self)
     local res = capture(config.http_prefix .. '/stats_raw')
     local b = ''
+    local buf = ''
     local s, e, u, stream
     local n = 1
     repeat
@@ -1023,7 +1020,23 @@ app:match('stream-stats', config.http_prefix .. '/stats', respond_to({
     until not s
     b = b .. sub(res.body,n)
 
-    return plain_err_out(self,b,200)
+    n = 1
+    repeat
+      s, e, f = find(b,"<flashver>([^<]+)</flashver>",n)
+      if s then
+        buf = buf .. sub(b,n,e)
+        n = e + 1
+        local _, _, account_id = find(f,"accountid:(.+)")
+        if account_id then
+          local account = Account:find(account_id)
+          buf = buf .. '<network>' .. account.network .. '</network>'
+          buf = buf .. '<name>' .. account.name .. '</name>'
+        end
+      end
+    until not s
+    buf = buf .. sub(b,n)
+
+    return plain_err_out(self,buf,200)
   end,
 }))
 
