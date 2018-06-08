@@ -64,7 +64,7 @@ local function http_error_handler(res)
 end
 
 local function refresh_access_token(refresh_token, access_token, expires_in, expires_at)
-  if expires_at == nil then -- older tokens never expire
+  if access_token and expires_in == nil then -- older token, never expires
     return access_token, expires_in, expires_at
   end
 
@@ -189,13 +189,11 @@ function M.metadata_fields()
   return {
     [1] = {
         type = 'text',
-        label = 'Title',
         key = 'title',
         required = true,
     },
     [2] = {
         type = 'text',
-        label = 'Game',
         key = 'game',
         required = true,
         search = '/game',
@@ -578,7 +576,7 @@ function M.create_comment_funcs(account, stream, send)
   local function sendMsg(event,data)
     local msg = {
       from = {
-        name = data.tags['display-name'],
+        name = data.tags['display-name'] or data.from.nick,
         id = data.tags['user-id'],
       },
       text = data.message,
