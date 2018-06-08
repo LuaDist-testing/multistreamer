@@ -53,20 +53,20 @@ local schemas = {
     schema.create_table('streams_accounts', {
       { 'stream_id', types.foreign_key },
       { 'account_id' , types.foreign_key },
-      { 'rtmp_url', types.text },
+      { 'rtmp_url', types.text({ null = true }) },
       'FOREIGN KEY(stream_id) REFERENCES streams(id)',
       'FOREIGN KEY(account_id) REFERENCES accounts(id)',
       'PRIMARY KEY(stream_id, account_id)',
     })
 
     schema.create_table('keystore', {
-      { 'stream_id', types.foreign_key },
-      { 'account_id' , types.foreign_key },
+      { 'stream_id', types.foreign_key({ null = true }) },
+      { 'account_id' , types.foreign_key({ null = true }) },
       { 'key' , types.varchar },
       { 'value', types.text },
       { 'created_at', types.time },
       { 'updated_at', types.time },
-      { 'expires_at', types.time({ null = false }) },
+      { 'expires_at', types.time({ null = true }) },
       'FOREIGN KEY(stream_id) REFERENCES streams(id)',
       'FOREIGN KEY(account_id) REFERENCES accounts(id)',
     })
@@ -84,19 +84,19 @@ local schemas = {
   end,
 
   [1485029477] = function()
-    schema.add_column('streams_accounts','ffmpeg_args',types.text)
+    schema.add_column('streams_accounts','ffmpeg_args',types.text({ null = true }))
   end,
 
   [1485036089] = function()
-    schema.add_column('accounts','ffmpeg_args',types.text)
+    schema.add_column('accounts','ffmpeg_args',types.text({ null = true }))
   end,
 
   [1485788609] = function()
     schema.create_table('shared_streams', {
       { 'user_id', types.foreign_key },
       { 'stream_id', types.foreign_key },
-      { 'chat_level', types.integer },
-      { 'metadata_level', types.integer },
+      { 'chat_level', types.integer({ null = true }) },
+      { 'metadata_level', types.integer({ null = true }) },
       { 'created_at', types.time },
       { 'updated_at', types.time },
       "PRIMARY KEY(user_id,stream_id)",
@@ -107,7 +107,7 @@ local schemas = {
 
   [1489949143] = function()
     schema.add_column('streams','preview_required',types.integer)
-    schema.add_column('streams','ffmpeg_pull_args',types.text)
+    schema.add_column('streams','ffmpeg_pull_args',types.text({ null = true }))
     local Stream = require'multistreamer.models.stream'
     local streams = Stream:select()
     for _,v in ipairs(streams) do
@@ -125,12 +125,12 @@ local schemas = {
   end,
 
   [1497734864] = function()
-    schema.create_table('shared_streams', {
+    schema.create_table('webhooks', {
       { 'id', types.serial },
       { 'stream_id', types.foreign_key },
       { 'url', types.text },
-      { 'params', types.text },
-      { 'notes', types.text },
+      { 'params', types.text({ null = true }) },
+      { 'notes', types.text({ null = true }) },
       { 'type', types.varchar },
       { 'created_at', types.time },
       { 'updated_at', types.time },
