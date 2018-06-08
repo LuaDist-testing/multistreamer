@@ -1,10 +1,18 @@
-package = "multistreamer"
-version = "dev-1"
+-- This file was automatically generated for the LuaDist project.
 
+package = "multistreamer"
+version = "11.0.4-0"
+
+-- LuaDist source
 source = {
-  url = "https://github.com/jprjr/multistreamer/archive/luarocks.tar.gz",
-  file = "multistreamer-luarocks.tar.gz",
+  tag = "11.0.4-0",
+  url = "git://github.com/LuaDist-testing/multistreamer.git"
 }
+-- Original source
+-- source = {
+--   url = "https://github.com/jprjr/multistreamer/archive/11.0.4.tar.gz",
+--   file = "multistreamer-11.0.4.tar.gz",
+-- }
 
 dependencies = {
   "lua >= 5.1",
@@ -92,4 +100,3 @@ build = {
     "share/multistreamer/html",
   },
 }
-
