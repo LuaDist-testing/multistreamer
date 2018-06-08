@@ -762,6 +762,12 @@ app:match('on-update',config.http_prefix .. '/on-update', respond_to({
         data_pulling = false,
       }
     end
+
+    if stream_status.data_incoming == false and
+       stream_status.data_pushing == false then
+      return plain_err_out(self,'Error')
+    end
+
     if stream_status.data_pushing == false then
       return plain_err_out(self,'OK',200)
     end
@@ -1163,6 +1169,11 @@ app:match('account-share', config.http_prefix .. '/account/:id/share', respond_t
 
 
 for _,m in networks() do
+  if m.endpoints then
+    for url, func_table in pairs(m.endpoints) do
+      app:match('endpoint-' .. m.name .. '-' .. url, config.http_prefix .. '/util/' .. m.name .. url, respond_to(func_table))
+    end
+  end
   if m.register_oauth then
     app:match('auth-'..m.name, config.http_prefix .. '/auth/' .. m.name, respond_to({
       GET = function(self)
