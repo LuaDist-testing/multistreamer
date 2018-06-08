@@ -1,17 +1,17 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "multistreamer"
-version = "11.0.4-0"
+version = "11.0.5-0"
 
 -- LuaDist source
 source = {
-  tag = "11.0.4-0",
+  tag = "11.0.5-0",
   url = "git://github.com/LuaDist-testing/multistreamer.git"
 }
 -- Original source
 -- source = {
---   url = "https://github.com/jprjr/multistreamer/archive/11.0.4.tar.gz",
---   file = "multistreamer-11.0.4.tar.gz",
+--   url = "https://github.com/jprjr/multistreamer/archive/11.0.5.tar.gz",
+--   file = "multistreamer-11.0.5.tar.gz",
 -- }
 
 dependencies = {
