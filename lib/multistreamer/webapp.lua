@@ -35,6 +35,7 @@ local status_dict = ngx.shared.status
 local capture = ngx.location.capture
 local ngx_log = ngx.log
 local ngx_warn = ngx.WARN
+local ngx_debug = ngx.DEBUG
 
 local pid = ngx.worker.pid()
 
@@ -659,6 +660,7 @@ app:match('publish-start',config.http_prefix .. '/on-publish', respond_to({
     return plain_err_out(self,'Not Found')
   end,
   POST = function(self)
+    ngx_log(ngx_debug,'app:on-publish: ' .. to_json(self.params))
     local stream, sas, err = get_all_streams_accounts(self.params.name)
     if not stream then
       return plain_err_out(self,err)
@@ -678,6 +680,14 @@ app:match('publish-start',config.http_prefix .. '/on-publish', respond_to({
     stream_status.data_incoming = true
     streams_dict:set(stream.id, to_json(stream_status))
 
+    if stream_status.data_pushing == true then -- this happens if OBS was disconnected and reconnected
+                                               -- we don't want to create new videos, just restart ffmpeg
+      publish('process:start:repush', {
+        id = stream.id,
+      })
+      return plain_err_out(self,'OK',200)
+    end
+
     if stream.preview_required == 0 and #sas > 0 then
       local hook_sas = {}
       for _,v in pairs(sas) do
@@ -691,6 +701,9 @@ app:match('publish-start',config.http_prefix .. '/on-publish', respond_to({
             networks[account.network].name,
             rtmp_err
           ))
+          -- reset data_incoming to false
+          stream_status.data_incoming = false
+          streams_dict:set(stream.id, to_json(stream_status))
           return plain_err_out(self,rtmp_err)
         end
         sa:update({rtmp_url = rtmp_url})
@@ -702,8 +715,8 @@ app:match('publish-start',config.http_prefix .. '/on-publish', respond_to({
 
       publish('process:start:push', {
         worker = pid,
-        id = stream.id,
         delay = 5,
+        id = stream.id,
       })
 
       for _,v in pairs(stream:get_webhooks()) do
@@ -728,7 +741,9 @@ app:match('on-update',config.http_prefix .. '/on-update', respond_to({
     return plain_err_out(self,'Not Found')
   end,
   POST = function(self)
-    if self.params.call == 'play' then
+    ngx_log(ngx_debug,'app:on-update: ' .. to_json(self.params))
+
+    if self.params.call == 'play' or self.params.call == 'update_play' then
       return plain_err_out(self,'OK',200)
     end
 
@@ -765,6 +780,7 @@ app:match('on-update',config.http_prefix .. '/on-update', respond_to({
 }))
 
 app:post('publish-stop',config.http_prefix .. '/on-done',function(self)
+  ngx_log(ngx_debug,'app:on-done: ' .. to_json(self.params))
   local stream, sas, err = get_all_streams_accounts(self.params.name)
   if not stream then
     return plain_err_out(self,err)
